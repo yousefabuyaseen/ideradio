@@ -1,58 +1,55 @@
-<div align="center">
+# Class Radio
 
-# IDERADIO
+A shared monthly playlist for a class, club or any group, dressed up as a first-generation iPod.
 
-**A shared monthly playlist for my class, styled like a music player from 2006.**
+Everyone adds 1 to 5 songs a month. The songs build into one mix that plays on a shared speaker, and every past month stays in the Archive. Nobody needs an account: people pick a name (or stay anonymous) and add songs from search, a pasted link, or their own Spotify, YouTube Music or Apple Music playlists. The mix opens in whichever app each person uses.
 
-![JavaScript](https://img.shields.io/badge/JavaScript-vanilla-F7DF1E?style=flat-square&logo=javascript&logoColor=black)
-![Netlify](https://img.shields.io/badge/Netlify-Functions%20%C2%B7%20Blobs-00C7B7?style=flat-square&logo=netlify&logoColor=white)
-![Spotify](https://img.shields.io/badge/Spotify-Web%20API-1DB954?style=flat-square&logo=spotify&logoColor=white)
+![Desktop](screenshots/desktop.jpg)
 
-[**Live site**](https://ideradio.netlify.app/) · [Portfolio](https://www.yousef.studio/)
+<img src="screenshots/phone.jpg" width="300" alt="Phone">
 
-</div>
+## What it does
+- **The iPod is the interface.** Slide around the click wheel to scroll, tap the top or bottom of the ring to step, press the centre to select, and use menu to go back. On phones, taps on the wheel use the iPhone's haptics.
+- **Monthly mix.** Each person adds up to 5 songs a month, stacks them in a crate first, then submits. Duplicates are blocked, and a new mix starts every month.
+- **Play Full Mix.** Plays full songs through YouTube on whatever device is plugged into the speaker. Preview Mix plays 30-second clips.
+- **Search that finds the real versions.** Explicit versions first, with 30-second previews, plus suggestions: For you, Trending, Class faves and a monthly mood.
+- **Your own music.** Connect Spotify to see your liked songs, top songs and playlists. Apple Music users can paste a shared playlist link instead.
+- **Save the mix** to Spotify or YouTube Music as a playlist.
+- **Make it yours.** Choose an iPod classic, mini or nano in white, black, chrome, U2 red or the mini colours. The page follows the device's light or dark mode.
 
-![IDERADIO this month](screenshots/this-month.png)
+## Set it up (about 15 minutes, free)
+It runs on Cloudflare Pages with a small Cloudflare D1 database. You need Node 22+ and a free Cloudflare account.
 
-Every month the class gets a fresh playlist. Everyone adds up to five songs, from any streaming service, and when the month
-ends it goes into the archive. There are no accounts and no database to run.
+1. Install Wrangler and sign in:
+   ```bash
+   npm i -g wrangler
+   wrangler login
+   ```
+2. Create the database and copy the `database_id` it prints into `wrangler.toml`:
+   ```bash
+   wrangler d1 create class-radio
+   ```
+3. Create the table:
+   ```bash
+   wrangler d1 execute class-radio --remote --file=schema.sql
+   ```
+4. Edit `site/config.js`: set your station's `name`, a `tagline`, and the `owner` people should ask for access.
+5. Deploy:
+   ```bash
+   wrangler pages deploy --project-name=class-radio --branch=main
+   ```
+Your site is now at `https://class-radio.pages.dev` (or whatever project name you chose).
 
-## Features
-
-- **Paste any link:** Spotify, Apple Music, YouTube Music, SoundCloud, Tidal and Deezer links are recognised. You can also search by name.
-- **Listen anywhere:** every track links out to your service of choice. *Preview mix* plays 30-second previews in the page.
-- **Save to Spotify:** connect your account (PKCE OAuth, no server secret) and save the whole month as a playlist.
-- **Monthly archive:** past months become album-art grids you can flick back through.
-- **Trending suggestions** from the Apple Music most-played chart, cached at the edge.
-- **Anonymous but fair:** each browser gets a private token, hashed on the server, so people can edit or remove only their own picks.
-- **Safe concurrent writes:** the API uses ETags and retries, so two people adding songs at the same time can't overwrite each other.
-- **Click-wheel interface** with an ambient soundtrack retuned to A=432 Hz.
-
-![IDERADIO archive](screenshots/archive.png)
-
-## How it's built
-
-```
-site/                      static front end (HTML, CSS, vanilla JS)
-netlify/functions/songs.mjs   playlist API: one JSON blob per month in Netlify Blobs
-netlify/functions/charts.mjs  Apple Music chart feed with previews
-```
-
----
-
-Class playlist site on Netlify. Static files are in `site/`. The shared playlist API is `netlify/functions/songs.mjs`, which stores data in Netlify Blobs, so no separate database is needed.
-
-## Update the live site
-From this folder: `npx netlify-cli deploy --prod` (needs Node 22.12+).
-
-## Spotify button (optional)
-1. Create an app at https://developer.spotify.com/dashboard. Choose **Web API**.
-2. Add your site's address as a **Redirect URI** with a trailing slash, e.g. `https://ideradio.netlify.app/`.
-3. Paste the **Client ID** into `site/config.js`, then deploy again.
-4. New Spotify apps run in development mode, so only accounts listed under **User Management** can connect.
+### Optional extras
+- **Full songs (Play Full Mix) and YouTube playlist links:** create a YouTube Data API v3 key in Google Cloud, then `wrangler pages secret put YT_KEY --project-name=class-radio`.
+- **Spotify connect and saving:** create an app at developer.spotify.com, add your site URL (with a trailing `/`) as a redirect URI, and put its Client ID in `config.js`. In development mode, add each person's Spotify email under User Management.
+- **YouTube Music connect and saving:** in Google Cloud, set up the Google Auth Platform (External), create a Web OAuth client with your site as an authorized JavaScript origin, add people as test users, and put the Client ID in `config.js`.
+- **Apple Music library connect:** needs a paid Apple Developer membership. Set `APPLE_TEAM_ID`, `APPLE_KEY_ID` and `APPLE_PRIVATE_KEY` (a MusicKit key) as Pages secrets. Without it, Apple Music users can still paste playlist links.
 
 ## Moderation
-Netlify → your site → **Blobs** → store `ideradio`. There is one entry per month, in the form `YYYY-MM`.
+Cloudflare dashboard → Storage & Databases → D1 → your database → table `songs`. Delete a row to remove a song.
 
-## Audio
-`site/audio/ambient.mp3` is retuned to A=432 Hz and slowed to about 79% speed.
+## Credits
+- Smileys by Aiwan, [kolobok.us](https://www.kolobok.us). Free for non-commercial sites as long as every page shows the credit (it's in the footer). Keep it non-commercial or swap them out.
+- Song search and previews: Deezer and the iTunes Search API. Full songs: YouTube.
+- iPod and the iPod designs are Apple's trademarks; this is a fan-made tribute, not affiliated with Apple.

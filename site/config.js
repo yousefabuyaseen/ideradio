@@ -1,4 +1,8 @@
-// Optional: paste your Spotify app's Client ID to turn on "Connect" and "Save to Spotify".
+// Your settings. Everything here is public (it ships to the browser), so never put secrets in this file.
 window.IDERADIO_CONFIG = {
-  spotifyClientId: "f5b5b63e8e524135a26ad668d47a7fc6",
+  name: "Class Radio",          // the station name shown everywhere
+  tagline: "new mix monthly",   // the small line under the name
+  owner: "your organiser",      // who people should ask to be added as Spotify / Google testers
+  spotifyClientId: "",          // optional: turns on Connect Spotify, My Spotify and Save to Spotify
+  googleClientId: "",           // optional: turns on Connect YouTube Music and Save to YouTube
 };
